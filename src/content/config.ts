@@ -9,6 +9,8 @@ const posts = defineCollection({
         updatedDate: z.coerce.date().optional(),
         heroImage: z.string().optional(),
         tags: z.array(z.string()).default([]),
+        // 仅在本地开发环境中展示的文章
+        localOnly: z.boolean().optional().default(false),
     }),
 });
 

@@ -4,39 +4,54 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { getCollection } from 'astro:content';
 
-const posts = (await getCollection('posts')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const allPosts = await getCollection('posts');
+const posts = allPosts
+  .filter((post) => import.meta.env.DEV || !post.data.localOnly)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BaseLayout title="My Blog" description="Thinking and writing.">
+<BaseLayout title="Evan's Blog" description="Thinking and writing.">
 	<Header slot="header" />
 	
-	<section class="mt-8">
-    <h2 class="text-xs font-bold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase mb-8 ml-1">
+	<section class="mt-8 w-full">
+    <h2 class="text-xs font-bold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase mb-8 text-center">
       Writing
     </h2>
-    <ul class="space-y-10">
+    <div class="grid gap-12 sm:gap-16 w-full">
       {posts.map((post) => (
-        <li class="group">
-          <a href={`/posts/${post.slug}/`} class="block focus:outline-none">
-            <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 sm:gap-4">
-              <h3 class="text-lg md:text-xl font-bold text-zinc-900 dark:text-zinc-100 group-hover:opacity-70 transition-opacity font-serif leading-snug">
+        <article class="group relative flex flex-col items-center w-full">
+          <a href={`/posts/${post.slug}/`} class="w-full flex flex-col md:flex-row gap-6 md:gap-8 items-center">
+            {post.data.heroImage && (
+              <div class="w-full md:w-1/2 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/50">
+                <img 
+                  src={post.data.heroImage} 
+                  alt={post.data.title}
+                  class="w-full aspect-[16/9] object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            <div class="flex flex-col flex-1 min-w-0 text-center md:text-left">
+               <h3 class="text-xl md:text-2xl font-bold font-serif text-zinc-900 dark:text-zinc-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-tight mb-3">
                 {post.data.title}
               </h3>
-              <time datetime={post.data.pubDate.toISOString()} class="text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 font-mono whitespace-nowrap shrink-0">
-                {post.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}
-              </time>
+              {post.data.description && (
+                <p class="text-sm md:text-base text-zinc-600 dark:text-zinc-400 leading-relaxed line-clamp-3 mb-4">
+                  {post.data.description}
+                </p>
+              )}
+               <div class="mt-auto flex items-center justify-center md:justify-start text-xs text-zinc-400 dark:text-zinc-500 font-mono gap-3 tracking-wider">
+                  <span class="text-zinc-900 dark:text-zinc-200 font-bold">Evan Yang</span>
+                  <span>•</span>
+                  <time datetime={post.data.pubDate.toISOString()}>
+                    {post.data.pubDate.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                  </time>
+              </div>
             </div>
-            {post.data.description && (
-              <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 leading-relaxed">
-                {post.data.description}
-              </p>
-            )}
           </a>
-        </li>
+        </article>
       ))}
-    </ul>
+    </div>
 	</section>
 
 	<Footer slot="footer" />

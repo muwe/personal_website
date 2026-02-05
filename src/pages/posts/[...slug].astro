@@ -5,14 +5,16 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('posts');
-  const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-	return sortedPosts.map((post, i) => ({
+	const allPosts = await getCollection('posts');
+  const visiblePosts = allPosts
+    .filter((post) => import.meta.env.DEV || !post.data.localOnly)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+	return visiblePosts.map((post, i) => ({
 		params: { slug: post.slug },
 		props: { 
       post, 
-      prevPost: i + 1 < sortedPosts.length ? sortedPosts[i + 1] : null, // Older
-      nextPost: i > 0 ? sortedPosts[i - 1] : null, // Newer
+      prevPost: i + 1 < visiblePosts.length ? visiblePosts[i + 1] : null, // Older
+      nextPost: i > 0 ? visiblePosts[i - 1] : null, // Newer
     },
 	}));
 }
@@ -45,6 +47,18 @@ const { Content } = await post.render();
           )}
        </div>
     </div>
+
+    {post.data.heroImage && (
+      <div class="not-prose mb-10">
+        <img
+          src={post.data.heroImage}
+          alt={post.data.title}
+          loading="lazy"
+          class="w-full max-h-[420px] object-cover rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm"
+        />
+      </div>
+    )}
+
     <Content />
   </article>
 
